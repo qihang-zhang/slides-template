@@ -1,5 +1,5 @@
 [project]
-name = "fused_mkdocs"
+name = "mkslides-template"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"

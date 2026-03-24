@@ -61,17 +61,6 @@ wheels = [
 ]
 
 [[package]]
-name = "fused-mkdocs"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "mkslides" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "mkslides", specifier = ">=1.0.10" }]
-
-[[package]]
 name = "jinja2"
 version = "3.1.6"
 source = { registry = "https://pypi.org/simple" }
@@ -204,6 +193,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/76/36/f0b53e57d9b489aff
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a3/02/1a8254d6ab6a69acdabb62266ce3388e6c72b3c2a54284939a38ec8b05cc/mkslides-1.0.10-py3-none-any.whl", hash = "sha256:6b291a0b7e6681897ceef0d202c2ddffcb1acf2bb35387ef87d28f0f6eebc120", size = 4465799, upload-time = "2025-07-06T21:08:58.673Z" },
 ]
+
+[[package]]
+name = "mkslides-template"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "mkslides" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "mkslides", specifier = ">=1.0.10" }]
 
 [[package]]
 name = "natsort"

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m mkslides build test.md -d /tmp/test_build)",
+      "Read(//tmp/test_build/**)",
+      "Bash(python3:*)"
+    ]
+  }
+}

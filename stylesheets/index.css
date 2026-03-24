@@ -1,0 +1,42 @@
+/*
+ *  https://www.hogent.be/dit-is-hogent/huisstijl/huisstijl-kleuren/
+ */
+
+ :root {
+    --hogent-blue: #4ca2d5;
+    --hogent-gray: #c3bbaf;
+    --hogent-red: #ef8767;
+    --hogent-white: #ffffff;
+    --hogent-black: #000000;
+    --hogent-font-family: "Vollkorn", Palatino, Times, "Times New Roman",
+                        "Songti SC", "Noto Serif SC", "Noto Serif CJK SC",
+                        "Source Han Serif SC", "SimSun",
+                        serif;
+
+    --code-font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                        "Liberation Mono", "Courier New", monospace;
+
+    --github-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+                          Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+
+    --wikipedia-a-color: #3366cc;
+    --wikipedia-code-bg-color: #f8f8f8;
+    --wikipedia-code-border-color: #eaecf0;
+
+    --a-color: var(--wikipedia-a-color);
+}
+
+body {
+    background: url("https://qihang-zhang.com/comping-styles/assets/fruit/lemon.svg");
+    background-size: 10vh;
+    background-position: right 2ch bottom 3ch;
+    background-repeat: no-repeat;
+    font-family: var(--hogent-font-family);
+    font-weight: 400;
+    font-size: 1.2em;
+    margin: 2ch;
+}
+
+code, pre {
+    font-family: var(--code-font-family);
+}

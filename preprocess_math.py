@@ -10,26 +10,6 @@ def _is_escaped(text: str, index: int) -> bool:
     return backslashes % 2 == 1
 
 
-def _escape_underscores(math: str) -> str:
-    escaped: list[str] = []
-    index = 0
-    while index < len(math):
-        char = math[index]
-        if char == "\\":
-            escaped.append(char)
-            index += 1
-            if index < len(math):
-                escaped.append(math[index])
-                index += 1
-            continue
-        if char == "_":
-            escaped.append(r"\_")
-        else:
-            escaped.append(char)
-        index += 1
-    return "".join(escaped)
-
-
 def _consume_fenced_code(markdown: str, start: int) -> tuple[str, int] | None:
     if start > 0 and markdown[start - 1] != "\n":
         return None
@@ -113,8 +93,7 @@ def _consume_math(markdown: str, start: int) -> tuple[str, int] | None:
         index = start + len(opening)
         while index < len(markdown):
             if markdown.startswith(closing, index) and not _is_escaped(markdown, index):
-                inner = markdown[start + len(opening) : index]
-                return opening + _escape_underscores(inner) + closing, index + len(closing)
+                return markdown[start : index + len(closing)], index + len(closing)
             index += 1
         return None
     return None

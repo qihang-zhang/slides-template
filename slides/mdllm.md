@@ -82,7 +82,7 @@ style: |
 ### 1. The Forward Process: Comparison
 
 <div style="width: 100%; overflow-x: auto;">
-  <table style="width: 100%; font-size: 0.55em; border-collapse: collapse;">
+  <table style="width: 100%; font-size: 0.52em; border-collapse: collapse;">
     <thead>
       <tr style="border-bottom: 2px solid #fff;">
         <th style="text-align: left; padding: 10px; width: 15%;">Feature</th>
@@ -98,11 +98,35 @@ style: |
       </tr>
       <tr style="border-bottom: 1px solid #555;">
         <td style="padding: 8px;"><strong>Transition Function</strong></td>
-        <td style="padding: 8px;">$$q(\mathbf{z}_t\|\mathbf{z}_{t-1}) = \mathcal{N}(\mathbf{z}_t; \sqrt{1-\beta_t}\mathbf{z}_{t-1}, \beta_t \mathbf{I})$$</td>
-        <td style="padding: 8px;">
-            $$q(\mathbf{z}_t\|\mathbf{z}_s) = \text{Cat}(\mathbf{z}_t; \mathbf{Q}_{t\mid s}^\top z_s) =  \text{Cat}(\mathbf{z}_t; \alpha_{t\mid s} \mathbf{z}_{s} + (1-\alpha_{t\mid s})\mathbf{m})$$
+        <td style="padding: 8px; line-height: 1.15;">
+            $$
+            \begin{aligned}
+            q(\mathbf{z}_t \mid \mathbf{z}_{t-1})
+            &= \mathcal{N}\!\left(
+            \mathbf{z}_t;
+            \sqrt{1-\beta_t}\mathbf{z}_{t-1},
+            \beta_t \mathbf{I}
+            \right)
+            \end{aligned}
+            $$
+        </td>
+        <td style="padding: 8px; line-height: 1.15;">
+            $$
+            \begin{aligned}
+            q(\mathbf{z}_t \mid \mathbf{z}_s)
+            &= \text{Cat}(\mathbf{z}_t; \mathbf{Q}_{t\mid s}^\top \mathbf{z}_s) \\
+            &= \text{Cat}(\mathbf{z}_t; \alpha_{t\mid s}\mathbf{z}_s + (1-\alpha_{t\mid s})\mathbf{m})
+            \end{aligned}
+            $$
             <br>
-            $$Q_{t\mid s}=\alpha_{t\mid s}\mathbf{I}+ (1-\alpha_{t\mid s})\mathbf{1}\mathbf{m}^\top, \alpha_{t\mid s}=\frac{\alpha_t}{\alpha_s}$$
+            $$
+            \begin{aligned}
+            \mathbf{Q}_{t\mid s}
+            &= \alpha_{t\mid s}\mathbf{I}+ (1-\alpha_{t\mid s})\mathbf{1}\mathbf{m}^\top \\
+            \alpha_{t\mid s}
+            &= \frac{\alpha_t}{\alpha_s}
+            \end{aligned}
+            $$
         </td>
       </tr>
       <tr style="border-bottom: 1px solid #555;">

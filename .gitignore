@@ -8,3 +8,4 @@ docs/Slides/
 fused_mkdocs/
 .obsidian/
 slides/export
+*.pyc

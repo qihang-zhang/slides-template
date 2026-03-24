@@ -6,6 +6,7 @@ slides:
   favicon: stylesheets/watermelon.svg
   theme: stylesheets/slides.css
   highlight_theme: vs
+  preprocess_script: preprocess_math.py
   separator: ^\s*---\s*$
   separator_vertical: ^\s*-v-\s*$
   separator_notes: "^Notes?:"

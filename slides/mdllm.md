@@ -105,11 +105,11 @@ style: |
 
 ## 2. The Forward Posterior: Derivation
 
-We need $q(\mathbf{z}\_s | \mathbf{z}\_t, \mathbf{x})$ where $s < t$ (less noisy).
+We need $q(\mathbf{z}_s | \mathbf{z}_t, \mathbf{x})$ where $s < t$ (less noisy).
 From D3PM (Austin et al.), the posterior for discrete diffusion is given by Bayes rule involving the transition matrices $Q$:
 
 $$
-q(\mathbf{z}_s|\mathbf{z}_t, \mathbf{x}) = \text{Cat}\left\( \mathbf{z}_s; \frac{Q _{t|s}\mathbf{z} _t \odot Q _s^\top \mathbf{x}}{\mathbf{z} _t^\top Q _t^\top \mathbf{x}} \right) 
+q(\mathbf{z}_s|\mathbf{z}_t, \mathbf{x}) = \text{Cat}\left\( \mathbf{z}_s; \frac{Q_{t|s}\mathbf{z}_t \odot Q_s^\top \mathbf{x}}{\mathbf{z}_t^\top Q_t^\top \mathbf{x}} \right) 
 $$
 
 Where:
@@ -121,10 +121,10 @@ Where:
 We substitute the definition of $Q$ into the posterior,
 
 $$
-q(\mathbf{z}_s|\mathbf{z}_t, \mathbf{x}) = \text{Cat}\left\(\mathbf{z}_s; \frac{[\alpha\_{t|s}\mathbf{I} + (1-\alpha\_{t|s})\mathbf{1}\boldsymbol{\pi}^\top]\mathbf{z} _t \odot [\alpha\_s\mathbf{I} + (1-\alpha\_s)\mathbf{1}\boldsymbol{\pi}^\top]^\top \mathbf{x}}{\mathbf{z}_t^\top[\alpha\_t\mathbf{I} + (1-\alpha\_t)\mathbf{1}\boldsymbol{\pi}^\top]^\top \mathbf{x}}\right\)
+q(\mathbf{z}_s|\mathbf{z}_t, \mathbf{x}) = \text{Cat}\left\(\mathbf{z}_s; \frac{[\alpha_{t|s}\mathbf{I} + (1-\alpha_{t|s})\mathbf{1}\boldsymbol{\pi}^\top]\mathbf{z}_t \odot [\alpha_s\mathbf{I} + (1-\alpha_s)\mathbf{1}\boldsymbol{\pi}^\top]^\top \mathbf{x}}{\mathbf{z}_t^\top[\alpha_t\mathbf{I} + (1-\alpha_t)\mathbf{1}\boldsymbol{\pi}^\top]^\top \mathbf{x}}\right\)
 $$
 $$
-= \text{Cat}\left\(\mathbf{z}_s; \frac{[\alpha _{t|s}\mathbf{z} _t + (1-\alpha _{t|s})\mathbf{1}(\boldsymbol{\pi}^\top \mathbf{z} _t)] \odot [\alpha _s\mathbf{x} + (1-\alpha _s)\boldsymbol{\pi}]}{\alpha\_t \mathbf{z}_t^\top\mathbf{x}+(1-\alpha_t)\mathbf{z}_t^\top\boldsymbol{\pi}}\right\)
+= \text{Cat}\left\(\mathbf{z}_s; \frac{[\alpha_{t|s}\mathbf{z}_t + (1-\alpha_{t|s})\mathbf{1}(\boldsymbol{\pi}^\top \mathbf{z}_t)] \odot [\alpha_s\mathbf{x} + (1-\alpha_s)\boldsymbol{\pi}]}{\alpha_t \mathbf{z}_t^\top\mathbf{x}+(1-\alpha_t)\mathbf{z}_t^\top\boldsymbol{\pi}}\right\)
 $$
 
 Now, we apply this to **Masked Diffusion**.
@@ -138,15 +138,15 @@ We analyze two cases: **Unmasked** and **Masked**.
 ## Case 1: The Unmasked Token ($\mathbf{z}_t = \mathbf{x}$)
 
 If the token at time $t$ is **not** masked ($\mathbf{z}_t = \mathbf{x}$), it must have been unmasked at time $s$ (since masking is absorbing).
-Substitute $\mathbf{z}\_t = \mathbf{x}$ and $\boldsymbol{\pi} = \mathbf{m}$, and
+Substitute $\mathbf{z}_t = \mathbf{x}$ and $\boldsymbol{\pi} = \mathbf{m}$, and
 note that $\mathbf{x} \odot \mathbf{m} = 0$ (orthogonal vectors) and $\mathbf{x}^\top \mathbf{m} = 0$.
 
 $$
-q(\mathbf{z}\_s|\mathbf{z}\_t=\mathbf{x}, \mathbf{x}) = \text{Cat}\left\(\mathbf{z}\_s;\frac{[\alpha_{t|s}\mathbf{x} + (1-\alpha_{t|s})\mathbf{1}\overbrace{\mathbf{m}^\top \mathbf{x}}^{0}] \odot [\alpha_s\mathbf{x} + (1-\alpha_s)\mathbf{m}]}{\alpha_t \mathbf{x}^\top \mathbf{x}+(1-\alpha_t)\mathbf{x}^\top\mathrm{m}}\right\)
+q(\mathbf{z}_s|\mathbf{z}_t=\mathbf{x}, \mathbf{x}) = \text{Cat}\left\(\mathbf{z}_s;\frac{[\alpha_{t|s}\mathbf{x} + (1-\alpha_{t|s})\mathbf{1}\overbrace{\mathbf{m}^\top \mathbf{x}}^{0}] \odot [\alpha_s\mathbf{x} + (1-\alpha_s)\mathbf{m}]}{\alpha_t \mathbf{x}^\top \mathbf{x}+(1-\alpha_t)\mathbf{x}^\top\mathrm{m}}\right\)
 $$
 
 $$
-= \text{Cat}\left\(\mathbf{z}\_s;\frac{[\alpha_{t|s}\mathbf{x}] \odot [\alpha_s\mathbf{x} + (1-\alpha_s)\mathbf{m}]}{\alpha_t}\right\)=\text{Cat}\left\(\mathbf{z}\_s;\mathbf{x}\right\)=\text{Cat}\left\(\mathbf{z}\_s;\mathbf{z}\_t\right\)
+= \text{Cat}\left\(\mathbf{z}_s;\frac{[\alpha_{t|s}\mathbf{x}] \odot [\alpha_s\mathbf{x} + (1-\alpha_s)\mathbf{m}]}{\alpha_t}\right\)=\text{Cat}\left\(\mathbf{z}_s;\mathbf{x}\right\)=\text{Cat}\left\(\mathbf{z}_s;\mathbf{z}_t\right\)
 $$
 ---
 
@@ -155,27 +155,27 @@ $$
 If the token is currently masked, it was either **already masked** at time $s$, or it **became masked** between $s$ and $t$. Substitute $\mathbf{z}_t = \mathbf{m}$ and $\boldsymbol{\pi} = \mathbf{m}$, and note that $\mathbf{m}^\top \mathbf{m} = 1$ and $\mathbf{m} \odot \mathbf{m} = \mathbf{m}$.
 
 $$
-q(\mathbf{z}\_s|\mathbf{z}\_t=\mathbf{x}, \mathbf{x}) = \text{Cat}\left\(\mathbf{z}\_s;\frac{[\alpha_{t|s}\mathbf{m} + (1-\alpha_{t|s})\mathbf{1}] \odot [\alpha_s\mathbf{x} + (1-\alpha_s)\mathbf{m}]}{(1-\alpha_t)}\right\)
+q(\mathbf{z}_s|\mathbf{z}_t=\mathbf{x}, \mathbf{x}) = \text{Cat}\left\(\mathbf{z}_s;\frac{[\alpha_{t|s}\mathbf{m} + (1-\alpha_{t|s})\mathbf{1}] \odot [\alpha_s\mathbf{x} + (1-\alpha_s)\mathbf{m}]}{(1-\alpha_t)}\right\)
 $$
 
 $$
-= \text{Cat}\left\(\mathbf{z}\_s;\frac{(1-\alpha_s)\mathbf{m}+(\alpha_s-\alpha_t)\mathbf{x}}{1-\alpha_t}\right\)
+= \text{Cat}\left\(\mathbf{z}_s;\frac{(1-\alpha_s)\mathbf{m}+(\alpha_s-\alpha_t)\mathbf{x}}{1-\alpha_t}\right\)
 $$
 
 ---
 
-## Summary: The Posterior $q(\mathbf{z}\_s | \mathbf{z}\_t, \mathbf{x})$
+## Summary: The Posterior $q(\mathbf{z}_s | \mathbf{z}_t, \mathbf{x})$
 
 Combining both cases, we arrive at the closed-form posterior used for training:
 
 $$
-q(\mathbf{z}\_s|\mathbf{z}\_t, \mathbf{x}) = 
-\text{Cat}(\mathbf{z}\_s; \mathbf{z}\_t) \quad \text{if } \quad \mathbf{z}\_t \neq \mathbf{m}
+q(\mathbf{z}_s|\mathbf{z}_t, \mathbf{x}) = 
+\text{Cat}(\mathbf{z}_s; \mathbf{z}_t) \quad \text{if } \quad \mathbf{z}_t \neq \mathbf{m}
 $$
 
 $$
-q(\mathbf{z}\_s|\mathbf{z}\_t, \mathbf{x}) = 
-\text{Cat}\left\(\mathbf{z}\_s;\frac{(1-\alpha_s)\mathbf{m}+(\alpha_s-\alpha_t)\mathbf{x}}{1-\alpha_t}\right\) \quad \text{if} \quad \mathbf{z}\_t = \mathbf{m} 
+q(\mathbf{z}_s|\mathbf{z}_t, \mathbf{x}) = 
+\text{Cat}\left\(\mathbf{z}_s;\frac{(1-\alpha_s)\mathbf{m}+(\alpha_s-\alpha_t)\mathbf{x}}{1-\alpha_t}\right\) \quad \text{if} \quad \mathbf{z}_t = \mathbf{m} 
 $$
 
 
@@ -186,19 +186,19 @@ $$
 
 ## 3. The Reverse Process: Parameterization
 
-How do we model $p_\theta(\mathbf{z}\_s | \mathbf{z}\_t)$ to approximate the posterior?
+How do we model $p_\theta(\mathbf{z}_s | \mathbf{z}_t)$ to approximate the posterior?
 
 **SUBS Parameterization** 
-Network $x_\theta(\mathbf{z}\_t, t)$ predicts clean $x$.
+Network $x_\theta(\mathbf{z}_t, t)$ predicts clean $x$.
 
 $$
-p_\theta(\mathbf{z}\_s|\mathbf{z}\_t) = 
-\text{Cat}(\mathbf{z}\_s; \mathbf{z}\_t) \quad \text{if } \quad \mathbf{z}\_t \neq \mathbf{m}
+p_\theta(\mathbf{z}_s|\mathbf{z}_t) = 
+\text{Cat}(\mathbf{z}_s; \mathbf{z}_t) \quad \text{if } \quad \mathbf{z}_t \neq \mathbf{m}
 $$
 
 $$
-p_\theta(\mathbf{z}\_s|\mathbf{z}\_t) = 
-\text{Cat}\left\(\mathbf{z}\_s;\frac{(1-\alpha_s)\mathbf{m}+(\alpha_s-\alpha_t)\mathbf{x_\theta(\mathbf{z}_t)}}{1-\alpha_t}\right\) \quad \text{if} \quad \mathbf{z}\_t = \mathbf{m} 
+p_\theta(\mathbf{z}_s|\mathbf{z}_t) = 
+\text{Cat}\left\(\mathbf{z}_s;\frac{(1-\alpha_s)\mathbf{m}+(\alpha_s-\alpha_t)\mathbf{x_\theta(\mathbf{z}_t)}}{1-\alpha_t}\right\) \quad \text{if} \quad \mathbf{z}_t = \mathbf{m} 
 $$
 
 **Logic:** If token is visible, keep it. If masked, use network prediction.
@@ -224,10 +224,10 @@ The authors introduce **SUBS** (Substitution) to enforce logic:
 The discrete-time diffusion loss for finite $T$.
 
 $$
-\mathcal{L}\_{\text{diffusion}} = \sum_{i=1}^{T} \mathbb{E}\_{q} \left[ \text{D}\_{\text{KL}} \left( q(\mathbf{z}\_{s(i)} | \mathbf{z}\_{t(i)}, \mathbf{x}) \middle\| p\_{\theta}(\mathbf{z}\_{s(i)} | \mathbf{z}\_{t(i)}) \right) \right]
+\mathcal{L}_{\text{diffusion}} = \sum_{i=1}^{T} \mathbb{E}_{q} \left[ \text{D}_{\text{KL}} \left( q(\mathbf{z}_{s(i)} | \mathbf{z}_{t(i)}, \mathbf{x}) \middle\| p_{\theta}(\mathbf{z}_{s(i)} | \mathbf{z}_{t(i)}) \right) \right]
 $$
 $$
-= \sum\_{i=1}^{T} \mathbb{E}\_{q} \left[ \frac{\alpha_{t(i)} - \alpha_{s(i)}}{1 - \alpha_{t(i)}} \log \langle \mathbf{x}\_{\theta}(\mathbf{z}\_{t(i)}), \mathbf{x} \rangle \right]
+= \sum_{i=1}^{T} \mathbb{E}_{q} \left[ \frac{\alpha_{t(i)} - \alpha_{s(i)}}{1 - \alpha_{t(i)}} \log \langle \mathbf{x}_{\theta}(\mathbf{z}_{t(i)}), \mathbf{x} \rangle \right]
 $$
 
 *   **Weighted Cross-Entropy.**
@@ -237,7 +237,7 @@ $$
 
 ## Deriving the Objective
 
-The discrete diffusion loss is $\mathbb{E}_q [ D\_{KL}(q(z_s|z_t, x) || p_\theta(z_s|z_t)) ]$.
+The discrete diffusion loss is $\mathbb{E}_q [ D_{KL}(q(z_s|z_t, x) || p_\theta(z_s|z_t)) ]$.
 
 1.  **Case 1: $z_t = x$ (Unmasked)**
     *   $q(z_s|z_t, x)$ is deterministic (stay unmasked).
@@ -254,7 +254,7 @@ The discrete diffusion loss is $\mathbb{E}_q [ D\_{KL}(q(z_s|z_t, x) || p_\theta
 
 The authors extend this to continuous time for better performance (Eq 10).
 
-$$ \mathcal{L}\_{\text{NELBO}}^\infty = \mathbb{E}\_{q} \int_{0}^{1} \frac{\alpha'\_t}{1-\alpha_t} \log \langle x_\theta(z_t, t), x \rangle dt $$
+$$ \mathcal{L}_{\text{NELBO}}^\infty = \mathbb{E}_{q} \int_{0}^{1} \frac{\alpha'_t}{1-\alpha_t} \log \langle x_\theta(z_t, t), x \rangle dt $$
 
 *   **Interpretation:**
     *   $\frac{\alpha'_t}{1-\alpha_t}$: Weighting function based on noise schedule.
@@ -263,9 +263,9 @@ $$ \mathcal{L}\_{\text{NELBO}}^\infty = \mathbb{E}\_{q} \int_{0}^{1} \frac{\alph
 ---
 ## 6. Masked Diffusion Language Models
 
-Next, the authors apply masked diffusion to language modeling over sequences $\mathbf{x}^{1:L}$ of $L$ tokens. The forward noising process is applied independently accross a sequence, and $p_\theta({\mathbf{z}_s^{1:L}\mid \mathbf{z}_t^{1:L}})=\Pi\_{l=1}^{L} p_\theta(\mathbf{z}^l_s\mid  \mathbf{z}_t^{1:L})$.
+Next, the authors apply masked diffusion to language modeling over sequences $\mathbf{x}^{1:L}$ of $L$ tokens. The forward noising process is applied independently accross a sequence, and $p_\theta({\mathbf{z}_s^{1:L}\mid \mathbf{z}_t^{1:L}})=\Pi_{l=1}^{L} p_\theta(\mathbf{z}^l_s\mid  \mathbf{z}_t^{1:L})$.
 
-$$ \mathcal{L}\_{\text{NELBO}}^\infty = \mathbb{E}\_{q} \int_{0}^{1} \frac{\alpha'\_t}{1-\alpha_t} \sum_{\ell=1}^{L} \log \langle x_\theta^\ell(z_t^{1:L}, t), x^\ell \rangle dt $$
+$$ \mathcal{L}_{\text{NELBO}}^\infty = \mathbb{E}_{q} \int_{0}^{1} \frac{\alpha'_t}{1-\alpha_t} \sum_{\ell=1}^{L} \log \langle x_\theta^\ell(z_t^{1:L}, t), x^\ell \rangle dt $$
 
 * **Note**: Although the loss imposes a loss on all tokens, **unmasked tokens don’t contribute to the loss**, as they are copied over due to “carry-over unmasking”.
     
@@ -321,7 +321,7 @@ $$ \mathcal{L}\_{\text{NELBO}}^\infty = \mathbb{E}\_{q} \int_{0}^{1} \frac{\alph
 **PPL**: Perplexity evaluates how well the model predicts the reference tokens:
 
 $$
-\mathrm{PPL} = \exp \left(\mathbb{E} _{x \sim \mathbb{P} _{data}} - \frac{1}{N(x)} \sum _{i=1}^{N(x)} \log P(x _i \mid x _{<i})\right),
+\mathrm{PPL} = \exp \left(\mathbb{E}_{x \sim \mathbb{P}_{data}} - \frac{1}{N(x)} \sum_{i=1}^{N(x)} \log P(x_i \mid x_{<i})\right),
 $$
 
 Where:

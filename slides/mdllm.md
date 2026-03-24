@@ -42,12 +42,39 @@ style: |
 
 ## **Continuous vs. Discrete Diffusion Models**
 
-| Feature | Continuous Diffusion (DDPM) | Masked Discrete Diffusion (MDLM) |
-| :--- | :--- | :--- |
-| **Data Space** | <div style="background-color: #e8f4ff; padding: 10px; border-radius: 5px;">Continuous $x \in \mathbb{R}^d$</div> | <div style="background-color: #ffeaea; padding: 10px; border-radius: 5px;">Discrete tokens $x \in \mathcal{V}$ (one-hot)</div> |
-| **Noise Source** | <div style="background-color: #e8f4ff; padding: 10px; border-radius: 5px;">Gaussian noise $\epsilon \sim \mathcal{N}(0, I)$</div> | <div style="background-color: #ffeaea; padding: 10px; border-radius: 5px;">Masking state $m$ (`[MASK]`)</div> |
-| **Forward Process** | <div style="background-color: #e8f4ff; padding: 10px; border-radius: 5px;">Gradually add Gaussian noise until signal is destroyed.</div> | <div style="background-color: #ffeaea; padding: 10px; border-radius: 5px;">Gradually replace tokens with `[MASK]` (absorbing state).</div> |
-| **Reverse Process** | <div style="background-color: #e8f4ff; padding: 10px; border-radius: 5px;">Predict the **noise** to denoise steps.</div> | <div style="background-color: #ffeaea; padding: 10px; border-radius: 5px;">Predict **original tokens** $x_0$ to "unmask".</div> |
+<div style="width: 100%; overflow-x: auto;">
+  <table style="width: 100%; border-collapse: separate; border-spacing: 0 10px; font-size: 0.75em;">
+    <thead>
+      <tr>
+        <th style="text-align: left; padding: 10px 12px; width: 20%;">Feature</th>
+        <th style="text-align: left; padding: 10px 12px; width: 40%;">Continuous Diffusion (DDPM)</th>
+        <th style="text-align: left; padding: 10px 12px; width: 40%;">Masked Discrete Diffusion (MDLM)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding: 10px 12px; vertical-align: top;"><strong>Data Space</strong></td>
+        <td style="padding: 10px 12px; vertical-align: top; background-color: #e8f4ff; border-radius: 8px;">Continuous $x \in \mathbb{R}^d$</td>
+        <td style="padding: 10px 12px; vertical-align: top; background-color: #ffeaea; border-radius: 8px;">Discrete tokens $x \in \mathcal{V}$ (one-hot)</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 12px; vertical-align: top;"><strong>Noise Source</strong></td>
+        <td style="padding: 10px 12px; vertical-align: top; background-color: #e8f4ff; border-radius: 8px;">Gaussian noise $\epsilon \sim \mathcal{N}(0, I)$</td>
+        <td style="padding: 10px 12px; vertical-align: top; background-color: #ffeaea; border-radius: 8px;">Masking state $m$ (<code>[MASK]</code>)</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 12px; vertical-align: top;"><strong>Forward Process</strong></td>
+        <td style="padding: 10px 12px; vertical-align: top; background-color: #e8f4ff; border-radius: 8px;">Gradually add Gaussian noise until signal is destroyed.</td>
+        <td style="padding: 10px 12px; vertical-align: top; background-color: #ffeaea; border-radius: 8px;">Gradually replace tokens with <code>[MASK]</code> (absorbing state).</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 12px; vertical-align: top;"><strong>Reverse Process</strong></td>
+        <td style="padding: 10px 12px; vertical-align: top; background-color: #e8f4ff; border-radius: 8px;">Predict the <strong>noise</strong> to denoise steps.</td>
+        <td style="padding: 10px 12px; vertical-align: top; background-color: #ffeaea; border-radius: 8px;">Predict <strong>original tokens</strong> $x_0$ to "unmask".</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 
 ---

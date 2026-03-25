@@ -93,7 +93,8 @@ def _consume_math(markdown: str, start: int) -> tuple[str, int] | None:
         index = start + len(opening)
         while index < len(markdown):
             if markdown.startswith(closing, index) and not _is_escaped(markdown, index):
-                return markdown[start : index + len(closing)], index + len(closing)
+                inner = markdown[start + len(opening) : index]
+                return opening + _escape_underscores(inner) + closing, index + len(closing)
             index += 1
         return None
     return None

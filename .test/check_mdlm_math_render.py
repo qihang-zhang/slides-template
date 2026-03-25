@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import difflib
 import functools
+import html
 import http.server
 import re
 import shutil
@@ -24,11 +26,17 @@ CHROME_CANDIDATES = (
 )
 
 
-def _count_math_blocks(markdown: str) -> int:
+def _load_math_helpers() -> tuple[object, object, object]:
     sys.path.insert(0, str(ROOT))
     from preprocess_math import _consume_code_span, _consume_fenced_code, _consume_math
 
-    count = 0
+    return _consume_code_span, _consume_fenced_code, _consume_math
+
+
+def _extract_source_math_blocks(markdown: str) -> list[tuple[int, str]]:
+    _consume_code_span, _consume_fenced_code, _consume_math = _load_math_helpers()
+
+    blocks: list[tuple[int, str]] = []
     index = 0
     while index < len(markdown):
         fenced = _consume_fenced_code(markdown, index)
@@ -42,13 +50,30 @@ def _count_math_blocks(markdown: str) -> int:
 
         math = _consume_math(markdown, index)
         if math is not None:
-            _, index = math
-            count += 1
+            block, index = math
+            line = markdown.count("\n", 0, index - len(block)) + 1
+            blocks.append((line, block))
             continue
 
         index += 1
 
-    return count
+    return blocks
+
+
+def _extract_raw_math_blocks(rendered_html: str) -> list[str]:
+    _, _, _consume_math = _load_math_helpers()
+
+    blocks: list[str] = []
+    index = 0
+    while index < len(rendered_html):
+        math = _consume_math(rendered_html, index)
+        if math is not None:
+            block, index = math
+            blocks.append(block)
+            continue
+        index += 1
+
+    return blocks
 
 
 def _find_browser() -> str:
@@ -78,8 +103,56 @@ def _extract_rendered_sections(dom: str) -> str:
     return "\n".join(sections)
 
 
-def _check_rendered_math(rendered_html: str, expected_math_blocks: int) -> list[str]:
+def _normalize_math_for_matching(text: str) -> str:
+    text = html.unescape(text)
+    text = re.sub(r"<[^>]+>", "", text)
+    for delimiter in ("$$", "$", r"\(", r"\)", r"\[", r"\]"):
+        text = text.replace(delimiter, "")
+    text = text.lower()
+    text = re.sub(r"\\([a-zA-Z]+)", r"\1", text)
+    text = re.sub(r"[^a-z0-9]+", "", text)
+    return text
+
+
+def _find_unrendered_source_math(
+    rendered_html: str, source_math_blocks: list[tuple[int, str]]
+) -> list[tuple[int, str]]:
+    raw_math_blocks = _extract_raw_math_blocks(rendered_html)
+    unmatched: list[tuple[int, str]] = []
+
+    normalized_source = [
+        (line, block, _normalize_math_for_matching(block))
+        for line, block in source_math_blocks
+    ]
+
+    for raw_block in raw_math_blocks:
+        raw_norm = _normalize_math_for_matching(raw_block)
+        scored = []
+        for line, source_block, source_norm in normalized_source:
+            score = difflib.SequenceMatcher(None, raw_norm, source_norm).ratio()
+            scored.append((score, line, source_block))
+        scored.sort(reverse=True)
+        best_score, line, source_block = scored[0]
+        if best_score >= 0.7:
+            unmatched.append((line, source_block))
+        else:
+            unmatched.append((0, raw_block))
+
+    deduped: list[tuple[int, str]] = []
+    seen: set[tuple[int, str]] = set()
+    for item in unmatched:
+        if item in seen:
+            continue
+        seen.add(item)
+        deduped.append(item)
+    return deduped
+
+
+def _check_rendered_math(
+    rendered_html: str, source_math_blocks: list[tuple[int, str]]
+) -> list[str]:
     problems: list[str] = []
+    expected_math_blocks = len(source_math_blocks)
 
     rendered_math_blocks = (
         rendered_html.count("<mjx-container")
@@ -109,6 +182,20 @@ def _check_rendered_math(rendered_html: str, expected_math_blocks: int) -> list[
         if re.search(pattern, rendered_html):
             problems.append(message)
 
+    unrendered_source_math = _find_unrendered_source_math(rendered_html, source_math_blocks)
+    if unrendered_source_math:
+        problems.append(
+            "Source math that still appears raw in rendered slides:\n"
+            + "\n".join(
+                (
+                    f"  [line {line}]\n{block}"
+                    if line > 0
+                    else f"  [unmatched raw fragment]\n{block}"
+                )
+                for line, block in unrendered_source_math
+            )
+        )
+
     return problems
 
 
@@ -132,7 +219,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    expected_math_blocks = _count_math_blocks(SLIDE_FILE.read_text())
+    source_math_blocks = _extract_source_math_blocks(SLIDE_FILE.read_text())
     chrome = _find_browser()
 
     tmp_root = Path(tempfile.mkdtemp(prefix="mkslides-math-render.", dir="/tmp"))
@@ -206,7 +293,7 @@ def main() -> int:
         dom_dump_path.write_text(dom)
 
         rendered_html = _extract_rendered_sections(dom)
-        problems = _check_rendered_math(rendered_html, expected_math_blocks)
+        problems = _check_rendered_math(rendered_html, source_math_blocks)
         if problems:
             keep_artifacts = True
             raise AssertionError(
@@ -218,7 +305,7 @@ def main() -> int:
             "Math render check passed.\n"
             f"Built slide: {html_path}\n"
             f"Rendered DOM snapshot: {dom_dump_path}\n"
-            f"Expected math blocks: {expected_math_blocks}"
+            f"Expected math blocks: {len(source_math_blocks)}"
         )
         return 0
 

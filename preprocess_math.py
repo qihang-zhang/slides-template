@@ -10,6 +10,27 @@ def _is_escaped(text: str, index: int) -> bool:
     return backslashes % 2 == 1
 
 
+def _escape_math_underscores(block: str) -> str:
+    """Given a complete math block (with delimiters), escape bare _ in its body."""
+    for opening, closing in (("$$", "$$"), (r"\[", r"\]"), (r"\(", r"\)"), ("$", "$")):
+        if block.startswith(opening) and block.endswith(closing):
+            inner = block[len(opening) : len(block) - len(closing)]
+            escaped: list[str] = []
+            i = 0
+            while i < len(inner):
+                if inner[i] == "\\" and i + 1 < len(inner):
+                    escaped.append(inner[i : i + 2])
+                    i += 2
+                elif inner[i] == "_":
+                    escaped.append(r"\_")
+                    i += 1
+                else:
+                    escaped.append(inner[i])
+                    i += 1
+            return opening + "".join(escaped) + closing
+    return block
+
+
 def _consume_fenced_code(markdown: str, start: int) -> tuple[str, int] | None:
     if start > 0 and markdown[start - 1] != "\n":
         return None
@@ -93,8 +114,7 @@ def _consume_math(markdown: str, start: int) -> tuple[str, int] | None:
         index = start + len(opening)
         while index < len(markdown):
             if markdown.startswith(closing, index) and not _is_escaped(markdown, index):
-                inner = markdown[start + len(opening) : index]
-                return opening + _escape_underscores(inner) + closing, index + len(closing)
+                return markdown[start : index + len(closing)], index + len(closing)
             index += 1
         return None
     return None
@@ -117,8 +137,8 @@ def preprocess(markdown: str) -> str:
 
         math = _consume_math(markdown, index)
         if math is not None:
-            block, index = math
-            output.append(block)
+            raw_block, index = math
+            output.append(_escape_math_underscores(raw_block))
             continue
 
         output.append(markdown[index])

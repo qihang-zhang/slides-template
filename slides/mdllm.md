@@ -160,11 +160,12 @@ We need $q(\mathbf{z}_s | \mathbf{z}_t, \mathbf{x})$ where $s < t$ (less noisy).
 From D3PM (Austin et al.), the posterior for discrete diffusion is given by Bayes rule involving the transition matrices $Q$:
 
 $$
-q(\mathbf{z}_s|\mathbf{z}_t, \mathbf{x}) = \text{Cat}\left\( \mathbf{z}_s; \frac{Q_{t|s}\mathbf{z}_t \odot Q_s^\top \mathbf{x}}{\mathbf{z}_t^\top Q_t^\top \mathbf{x}} \right) 
+q(\mathbf{z}_s|\mathbf{z}_t, \mathbf{x}) = \text{Cat}\left( \mathbf{z}_s; \frac{Q_{t|s}\mathbf{z}_t \odot Q_s^\top \mathbf{x}}{\mathbf{z}_t^\top Q_t^\top \mathbf{x}} \right) 
 $$
 
 Where:
 *   $Q_{t|s} = \alpha_{t|s}\mathbf{I} + (1-\alpha_{t|s})\mathbf{1}\boldsymbol{\pi}^\top$ (Transition from $s \to t$)
+*   $\alpha_{t|s} = \alpha_t / \alpha_s$ for the absorbing mask process.
 *   $\odot$ is the element-wise (Hadamard) product.
 *   $\boldsymbol{\pi}$ is the stationary distribution (the noise prior).
 
@@ -172,10 +173,29 @@ Where:
 We substitute the definition of $Q$ into the posterior,
 
 $$
-q(\mathbf{z}_s|\mathbf{z}_t, \mathbf{x}) = \text{Cat}\left\(\mathbf{z}_s; \frac{[\alpha_{t|s}\mathbf{I} + (1-\alpha_{t|s})\mathbf{1}\boldsymbol{\pi}^\top]\mathbf{z}_t \odot [\alpha_s\mathbf{I} + (1-\alpha_s)\mathbf{1}\boldsymbol{\pi}^\top]^\top \mathbf{x}}{\mathbf{z}_t^\top[\alpha_t\mathbf{I} + (1-\alpha_t)\mathbf{1}\boldsymbol{\pi}^\top]^\top \mathbf{x}}\right\)
-$$
-$$
-= \text{Cat}\left\(\mathbf{z}_s; \frac{[\alpha_{t|s}\mathbf{z}_t + (1-\alpha_{t|s})\mathbf{1}(\boldsymbol{\pi}^\top \mathbf{z}_t)] \odot [\alpha_s\mathbf{x} + (1-\alpha_s)\boldsymbol{\pi}]}{\alpha_t \mathbf{z}_t^\top\mathbf{x}+(1-\alpha_t)\mathbf{z}_t^\top\boldsymbol{\pi}}\right\)
+\begin{aligned}
+q(\mathbf{z}_s|\mathbf{z}_t, \mathbf{x})
+&= \text{Cat}\left(
+\mathbf{z}_s;
+\frac{
+[\alpha_{t|s}\mathbf{I} + (1-\alpha_{t|s})\mathbf{1}\boldsymbol{\pi}^\top]\mathbf{z}_t
+\odot
+[\alpha_s\mathbf{I} + (1-\alpha_s)\mathbf{1}\boldsymbol{\pi}^\top]^\top \mathbf{x}
+}{
+\mathbf{z}_t^\top[\alpha_t\mathbf{I} + (1-\alpha_t)\mathbf{1}\boldsymbol{\pi}^\top]^\top \mathbf{x}
+}
+\right) \\
+&= \text{Cat}\left(
+\mathbf{z}_s;
+\frac{
+[\alpha_{t|s}\mathbf{z}_t + (1-\alpha_{t|s})\mathbf{1}(\boldsymbol{\pi}^\top \mathbf{z}_t)]
+\odot
+[\alpha_s\mathbf{x} + (1-\alpha_s)\boldsymbol{\pi}]
+}{
+\alpha_t \mathbf{z}_t^\top\mathbf{x} + (1-\alpha_t)\mathbf{z}_t^\top\boldsymbol{\pi}
+}
+\right).
+\end{aligned}
 $$
 
 Now, we apply this to **Masked Diffusion**.
@@ -193,11 +213,25 @@ Substitute $\mathbf{z}_t = \mathbf{x}$ and $\boldsymbol{\pi} = \mathbf{m}$, and
 note that $\mathbf{x} \odot \mathbf{m} = 0$ (orthogonal vectors) and $\mathbf{x}^\top \mathbf{m} = 0$.
 
 $$
-q(\mathbf{z}_s|\mathbf{z}_t=\mathbf{x}, \mathbf{x}) = \text{Cat}\left\(\mathbf{z}_s;\frac{[\alpha_{t|s}\mathbf{x} + (1-\alpha_{t|s})\mathbf{1}\overbrace{\mathbf{m}^\top \mathbf{x}}^{0}] \odot [\alpha_s\mathbf{x} + (1-\alpha_s)\mathbf{m}]}{\alpha_t \mathbf{x}^\top \mathbf{x}+(1-\alpha_t)\mathbf{x}^\top\mathrm{m}}\right\)
-$$
-
-$$
-= \text{Cat}\left\(\mathbf{z}_s;\frac{[\alpha_{t|s}\mathbf{x}] \odot [\alpha_s\mathbf{x} + (1-\alpha_s)\mathbf{m}]}{\alpha_t}\right\)=\text{Cat}\left\(\mathbf{z}_s;\mathbf{x}\right\)=\text{Cat}\left\(\mathbf{z}_s;\mathbf{z}_t\right\)
+\begin{aligned}
+q(\mathbf{z}_s|\mathbf{z}_t=\mathbf{x}, \mathbf{x})
+&= \text{Cat}\left(
+\mathbf{z}_s;
+\frac{
+[\alpha_{t|s}\mathbf{x} + (1-\alpha_{t|s})\mathbf{1}(\mathbf{m}^\top \mathbf{x})]
+\odot
+[\alpha_s\mathbf{x} + (1-\alpha_s)\mathbf{m}]
+}{
+\alpha_t \mathbf{x}^\top \mathbf{x} + (1-\alpha_t)\mathbf{x}^\top \mathbf{m}
+}
+\right) \\
+&= \text{Cat}\left(
+\mathbf{z}_s;
+\frac{\alpha_{t|s}\alpha_s \mathbf{x}}{\alpha_t}
+\right) \\
+&= \text{Cat}(\mathbf{z}_s; \mathbf{x})
+= \text{Cat}(\mathbf{z}_s; \mathbf{z}_t).
+\end{aligned}
 $$
 ---
 
@@ -206,11 +240,27 @@ $$
 If the token is currently masked, it was either **already masked** at time $s$, or it **became masked** between $s$ and $t$. Substitute $\mathbf{z}_t = \mathbf{m}$ and $\boldsymbol{\pi} = \mathbf{m}$, and note that $\mathbf{m}^\top \mathbf{m} = 1$ and $\mathbf{m} \odot \mathbf{m} = \mathbf{m}$.
 
 $$
-q(\mathbf{z}_s|\mathbf{z}_t=\mathbf{x}, \mathbf{x}) = \text{Cat}\left\(\mathbf{z}_s;\frac{[\alpha_{t|s}\mathbf{m} + (1-\alpha_{t|s})\mathbf{1}] \odot [\alpha_s\mathbf{x} + (1-\alpha_s)\mathbf{m}]}{(1-\alpha_t)}\right\)
-$$
-
-$$
-= \text{Cat}\left\(\mathbf{z}_s;\frac{(1-\alpha_s)\mathbf{m}+(\alpha_s-\alpha_t)\mathbf{x}}{1-\alpha_t}\right\)
+\begin{aligned}
+q(\mathbf{z}_s|\mathbf{z}_t=\mathbf{m}, \mathbf{x})
+&= \text{Cat}\left(
+\mathbf{z}_s;
+\frac{
+[\alpha_{t|s}\mathbf{m} + (1-\alpha_{t|s})\mathbf{1}]
+\odot
+[\alpha_s\mathbf{x} + (1-\alpha_s)\mathbf{m}]
+}{
+1-\alpha_t
+}
+\right) \\
+&= \text{Cat}\left(
+\mathbf{z}_s;
+\frac{(1-\alpha_s)\mathbf{m} + \alpha_s(1-\alpha_{t|s})\mathbf{x}}{1-\alpha_t}
+\right) \\
+&= \text{Cat}\left(
+\mathbf{z}_s;
+\frac{(1-\alpha_s)\mathbf{m} + (\alpha_s-\alpha_t)\mathbf{x}}{1-\alpha_t}
+\right).
+\end{aligned}
 $$
 
 ---
@@ -220,13 +270,15 @@ $$
 Combining both cases, we arrive at the closed-form posterior used for training:
 
 $$
-q(\mathbf{z}_s|\mathbf{z}_t, \mathbf{x}) = 
-\text{Cat}(\mathbf{z}_s; \mathbf{z}_t) \quad \text{if } \quad \mathbf{z}_t \neq \mathbf{m}
-$$
-
-$$
-q(\mathbf{z}_s|\mathbf{z}_t, \mathbf{x}) = 
-\text{Cat}\left\(\mathbf{z}_s;\frac{(1-\alpha_s)\mathbf{m}+(\alpha_s-\alpha_t)\mathbf{x}}{1-\alpha_t}\right\) \quad \text{if} \quad \mathbf{z}_t = \mathbf{m} 
+q(\mathbf{z}_s|\mathbf{z}_t, \mathbf{x})
+= \text{Cat}\left(
+\mathbf{z}_s;
+\begin{cases}
+\mathbf{z}_t, & \mathbf{z}_t \neq \mathbf{m}, \\
+\dfrac{(1-\alpha_s)\mathbf{m} + (\alpha_s-\alpha_t)\mathbf{x}}{1-\alpha_t},
+& \mathbf{z}_t = \mathbf{m}.
+\end{cases}
+\right)
 $$
 
 
@@ -240,16 +292,18 @@ $$
 How do we model $p_\theta(\mathbf{z}_s | \mathbf{z}_t)$ to approximate the posterior?
 
 **SUBS Parameterization** 
-Network $x_\theta(\mathbf{z}_t, t)$ predicts clean $x$.
+Network $\mathbf{x}_\theta(\mathbf{z}_t, t)$ predicts the clean token distribution.
 
 $$
-p_\theta(\mathbf{z}_s|\mathbf{z}_t) = 
-\text{Cat}(\mathbf{z}_s; \mathbf{z}_t) \quad \text{if } \quad \mathbf{z}_t \neq \mathbf{m}
-$$
-
-$$
-p_\theta(\mathbf{z}_s|\mathbf{z}_t) = 
-\text{Cat}\left\(\mathbf{z}_s;\frac{(1-\alpha_s)\mathbf{m}+(\alpha_s-\alpha_t)\mathbf{x_\theta(\mathbf{z}_t)}}{1-\alpha_t}\right\) \quad \text{if} \quad \mathbf{z}_t = \mathbf{m} 
+p_\theta(\mathbf{z}_s|\mathbf{z}_t)
+= \text{Cat}\left(
+\mathbf{z}_s;
+\begin{cases}
+\mathbf{z}_t, & \mathbf{z}_t \neq \mathbf{m}, \\
+\dfrac{(1-\alpha_s)\mathbf{m} + (\alpha_s-\alpha_t)\mathbf{x}_\theta(\mathbf{z}_t, t)}{1-\alpha_t},
+& \mathbf{z}_t = \mathbf{m}.
+\end{cases}
+\right)
 $$
 
 **Logic:** If token is visible, keep it. If masked, use network prediction.
@@ -275,10 +329,20 @@ The authors introduce **SUBS** (Substitution) to enforce logic:
 The discrete-time diffusion loss for finite $T$.
 
 $$
-\mathcal{L}_{\text{diffusion}} = \sum_{i=1}^{T} \mathbb{E}_{q} \left[ \text{D}_{\text{KL}} \left( q(\mathbf{z}_{s(i)} | \mathbf{z}_{t(i)}, \mathbf{x}) \middle\| p_{\theta}(\mathbf{z}_{s(i)} | \mathbf{z}_{t(i)}) \right) \right]
-$$
-$$
-= \sum_{i=1}^{T} \mathbb{E}_{q} \left[ \frac{\alpha_{t(i)} - \alpha_{s(i)}}{1 - \alpha_{t(i)}} \log \langle \mathbf{x}_{\theta}(\mathbf{z}_{t(i)}), \mathbf{x} \rangle \right]
+\begin{aligned}
+\mathcal{L}_{\text{diffusion}}
+&= \sum_{i=1}^{T} \mathbb{E}_{q} \left[
+\text{D}_{\text{KL}} \left(
+q(\mathbf{z}_{s(i)} | \mathbf{z}_{t(i)}, \mathbf{x})
+\middle\|
+p_{\theta}(\mathbf{z}_{s(i)} | \mathbf{z}_{t(i)})
+\right)
+\right] \\
+&= \sum_{i=1}^{T} \mathbb{E}_{q} \left[
+\frac{\alpha_{t(i)} - \alpha_{s(i)}}{1 - \alpha_{t(i)}}
+\log \langle \mathbf{x}_{\theta}(\mathbf{z}_{t(i)}, t(i)), \mathbf{x} \rangle
+\right].
+\end{aligned}
 $$
 
 *   **Weighted Cross-Entropy.**
@@ -305,18 +369,18 @@ The discrete diffusion loss is $\mathbb{E}_q [ D_{KL}(q(z_s|z_t, x) || p_\theta(
 
 The authors extend this to continuous time for better performance (Eq 10).
 
-$$ \mathcal{L}_{\text{NELBO}}^\infty = \mathbb{E}_{q} \int_{0}^{1} \frac{\alpha'_t}{1-\alpha_t} \log \langle x_\theta(z_t, t), x \rangle dt $$
+$$ \mathcal{L}_{\text{NELBO}}^\infty = \mathbb{E}_{q} \int_{0}^{1} \frac{\alpha'_t}{1-\alpha_t} \log \langle \mathbf{x}_\theta(\mathbf{z}_t, t), \mathbf{x} \rangle \, dt $$
 
 *   **Interpretation:**
-    *   $\frac{\alpha'_t}{1-\alpha_t}$: Weighting function based on noise schedule.
-    *   $\log \langle \dots \rangle$: Standard Cross Entropy .
+    *   $\frac{\alpha'_t}{1-\alpha_t}$: Weighting function induced by the noise schedule.
+    *   Since $\alpha_t$ decreases over time, this acts like a positive weight on $-\log \langle \mathbf{x}_\theta(\mathbf{z}_t, t), \mathbf{x} \rangle$.
     
 ---
 ## 6. Masked Diffusion Language Models
 
-Next, the authors apply masked diffusion to language modeling over sequences $\mathbf{x}^{1:L}$ of $L$ tokens. The forward noising process is applied independently accross a sequence, and $p_\theta({\mathbf{z}_s^{1:L}\mid \mathbf{z}_t^{1:L}})=\Pi_{l=1}^{L} p_\theta(\mathbf{z}^l_s\mid  \mathbf{z}_t^{1:L})$.
+Next, the authors apply masked diffusion to language modeling over sequences $\mathbf{x}^{1:L}$ of $L$ tokens. The forward noising process is applied independently across a sequence, and $p_\theta(\mathbf{z}_s^{1:L}\mid \mathbf{z}_t^{1:L})=\prod_{\ell=1}^{L} p_\theta(\mathbf{z}_s^\ell\mid \mathbf{z}_t^{1:L})$.
 
-$$ \mathcal{L}_{\text{NELBO}}^\infty = \mathbb{E}_{q} \int_{0}^{1} \frac{\alpha'_t}{1-\alpha_t} \sum_{\ell=1}^{L} \log \langle x_\theta^\ell(z_t^{1:L}, t), x^\ell \rangle dt $$
+$$ \mathcal{L}_{\text{NELBO}}^\infty = \mathbb{E}_{q} \int_{0}^{1} \frac{\alpha'_t}{1-\alpha_t} \sum_{\ell=1}^{L} \log \langle \mathbf{x}_\theta^\ell(\mathbf{z}_t^{1:L}, t), \mathbf{x}^\ell \rangle \, dt $$
 
 * **Note**: Although the loss imposes a loss on all tokens, **unmasked tokens don’t contribute to the loss**, as they are copied over due to “carry-over unmasking”.
     
@@ -334,7 +398,7 @@ $$ \mathcal{L}_{\text{NELBO}}^\infty = \mathbb{E}_{q} \int_{0}^{1} \frac{\alpha'
 4.  **Training:**
     *   Sample time $t$.
     *   Mask input $x$ based on $\alpha_t$.
-    *   Minimize Cross Entropy on masked tokens weighted by $\frac{\alpha'_t}{1-\alpha_t}$.
+    *   Minimize Cross Entropy on masked tokens with effective weight $-\frac{\alpha'_t}{1-\alpha_t}$.
 
 ---
 
